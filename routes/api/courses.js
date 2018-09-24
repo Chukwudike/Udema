@@ -12,35 +12,45 @@ router.post(
   "/",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    User.findOne({ $and: [{ _id: req.user.id }, { role: "instructor" }] })
-      .then(user => {
-        const course = {};
-        (course.user = req.user.id),
-          (course.name = req.body.name),
-          (course.description = req.body.description),
-          (course.category = req.body.category),
-          (course.creator = req.body.handle),
-          (course.courseUrl = encodeURI(
-            `api/courses/${req.body.handle}/${req.body.name}`
-          ));
-        Courses.findOne({ user: req.user.id }).then(user => {
-          if (user) {
-            Courses.findOneAndUpdate({
-              user: req.user.id,
-              $set: course,
-              new: true
-            })
-              .then(upd_course => res.json(upd_course))
-              .catch(err => console.log(err));
-          } else {
-            new course.save(course).then(new_course => res.json(new_course));
-          }
-        });
-      })
-      .catch(err => {
-        res.status(400).json(err);
-        console.log(err);
-      });
+    User.find({ $and: [{ role: "instructor" }, { _id: req.user.id }] }).then(
+      user => {
+        if (user.length === 1) {
+          const course = {};
+          (course.user = req.user.id),
+            (course.name = req.body.name),
+            (course.description = req.body.description),
+            (course.category = req.body.category),
+            (course.creator = req.body.handle),
+            (course.courseUrl = encodeURI(
+              `api/courses/${req.body.handle}/${req.body.name}`
+            ));
+          Courses.findOne({
+            $and: [{ user: req.user.id }, { name: req.body.name }]
+          }).then(found_course => {
+            //console.log(found_course);
+            if (found_course) {
+              Courses.findOneAndUpdate(
+                {
+                  name: req.body.name
+                },
+                { $set: course },
+                {
+                  new: true
+                }
+              )
+                .then(result => res.json(result))
+                .catch(err => console.log(err));
+            } else {
+              new Courses(course)
+                .save()
+                .then(new_course => res.json(new_course));
+            }
+          });
+        } else {
+          res.status(400).json({ msg: "You are not an instructor bro!" });
+        }
+      }
+    );
   }
 );
 
@@ -54,19 +64,23 @@ const upload = multer({
   storage: storage
 }).single("video");
 
-// @route   POST api/profile/upload
+// @route   GET api/courses/:username/:c
 // @desc    Uploads user image
 // @access  Private
+
+// @route   POST api/courses/upload/:course_id
+// @desc    Uploads user image
+// @access  Private
+
 router.post(
   "/upload/:course_id",
   passport.authenticate("jwt", { session: false }),
   (req, res, next) => {
     User.findOne({
       $and: [{ _id: req.user.id }, { role: "instructor" }]
-    }).then(() => {
-      Courses.findById(req.params.course_id)
-        .then(course => {
-          console.log(course);
+    })
+      .then(() => {
+        Courses.findById(req.params.course_id).then(course => {
           upload(req, res, err => {
             cloudinary.v2.uploader.upload(
               req.file.path,
@@ -105,17 +119,16 @@ router.post(
                     }
                   ]
                 };
+
                 if (
-                  course.modules.map(
-                    course => course.title_module === req.body.module
-                  )
+                  course.modules.filter(
+                    section => section.title_module === req.body.module
+                  ).length > 0
                 ) {
-                  course.modules.map(course => {
-                    course.videos.push({
-                      duration: result.duration,
-                      title: req.body.title,
-                      video_url: result.secure_url
-                    });
+                  course.modules.videos.push({
+                    duration: result.duration,
+                    title: req.body.title,
+                    video_url: result.secure_url
                   });
                 } else {
                   course.modules.unshift(upload);
@@ -124,9 +137,9 @@ router.post(
               }
             );
           });
-        })
-        .catch(err => console.log(err));
-    });
+        });
+      })
+      .catch(err => console.log(err));
   }
 );
 
