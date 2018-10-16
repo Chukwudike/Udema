@@ -110,7 +110,7 @@ router.post(
         const errors = {};
         if (err) {
           errors.image = err;
-          return res.status(400).json(errors);
+          return reshandle.status(400).json(errors);
         } else if (req.file === undefined) {
           errors.image = "Please upload a file";
           return res.status(400).json(errors);

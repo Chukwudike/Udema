@@ -36,11 +36,12 @@ router.post("/register", (req, res) => {
       const newUser = new User({
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        password2 : req.body.password2
       });
       const firstname = req.body.name.trim().split(" ")[0];
       const lastname = req.body.name.trim().split(" ")[1];
-      const handle = `${firstname}-${lastname}`;
+      const handle = `${firstname}${- lastname ? lastname : '' }`;
 
       const profileData = new Profile({
         firstname: firstname,
@@ -59,7 +60,7 @@ router.post("/register", (req, res) => {
               Profile.findOne({ handle: profileData.handle }).then(handle => {
                 if (handle) {
                   handle.handle = `${profileData.handle}-${Math.floor(
-                    Math.random() * 10 + 1
+                    Math.random() * 20 + 1
                   )}`;
                   handle.user = user._id;
                   handle.save().then(userhandle => res.json(userhandle));

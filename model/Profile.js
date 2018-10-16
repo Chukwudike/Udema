@@ -16,7 +16,6 @@ const ProfileSchema = new Schema({
   },
   lastname: {
     type: String,
-    required: true
   },
   role: {
     type: String,
@@ -37,20 +36,7 @@ const ProfileSchema = new Schema({
       type: String
     }
   },
-  courses: [{
-    name: {
-      type : String
-    },
-    creator : {
-      type : String
-    },
-     courseUrl: {
-      type : String
-    },
-    courseImage : {
-      type : String
-    }
-  }],
+  
   cart: [{
     name: {
       type : String
@@ -92,6 +78,8 @@ const ProfileSchema = new Schema({
   numOfSubscribedCourses : {
     
   } 
+ 
+  
 });
 
 module.exports = Profile = mongoose.model("profile", ProfileSchema);

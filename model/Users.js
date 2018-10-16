@@ -27,7 +27,40 @@ const UserSchema = new Schema({
   date: {
     type: Date,
     default: Date.now
-  }
+  },
+  myCourses : [{
+    name: {
+      type : String
+    },
+    creator : {
+      type : String
+    },
+     courseUrl: {
+      type : String
+    },
+    courseImage : {
+      type : String
+    }
+  }],
+  courses: [{
+    courseid : {
+      type: Schema.Types.ObjectId,
+      ref: "courses"
+    },
+    name: {
+      type : String
+    },
+    creator : {
+      type : String
+    },
+     courseUrl: {
+      type : String
+    },
+    courseImage : {
+      type : String
+    }
+  }],
+
 });
 
 module.exports = User = mongoose.model('users', UserSchema);
